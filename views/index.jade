@@ -1,5 +1,30 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  div(id="status")
+  h1 Welcome to #{title}
+  div(id="container")
+  script(src="//code.jquery.com/jquery-2.1.4.min.js")
+  script.
+      if (!!window.EventSource) {
+          var source = new EventSource('/stream')
+          source.onmessage = function(e) {
+              var currentText = document.getElementById("container").innerHTML;
+              document.getElementById("container").innerHTML = currentText + "\n" + e.data;
+          }
+
+          source.onopen = function (e) {
+              $("#status").text("Connected")
+          }
+
+          source.onerror = function (e) {
+              if (e.target.readyState == EventSource.CLOSED) {
+                  $("#status").text("Disconnected")
+              }
+              else if (e.target.readyState == EventSource.CONNECTING) {
+                  $("#status").text("Connecting...")
+              }
+          }
+      } else {
+          console.log("The browser doesn't support Server Sent Events.")
+      }
